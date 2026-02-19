@@ -1,0 +1,76 @@
+// InsightGenerator: Streaming data generator
+// Generates insights one-by-one without batch allocation
+// Solves OOM issue of batch-based generation
+
+struct GeneratorConfig {
+  total_count: u64,
+  batch_size: u64,
+  interval_ms: u64
+}
+
+struct GeneratorState {
+  current: u64,
+  total: u64,
+  batch_size: u64,
+  generated: u64,
+  start_time: u64
+}
+
+fn init_generator(config: GeneratorConfig) -> GeneratorState {
+  GeneratorState {
+    current: 0,
+    total: config.total_count,
+    batch_size: config.batch_size,
+    generated: 0,
+    start_time: 0
+  }
+}
+
+// Generate single insight (O(1) memory)
+fn generate_one(state: &GeneratorState, index: u64) -> Insight {
+  let timestamp: u64 = state.start_time + (index * 1000)
+  let value: f64 = (index % 100) as f64
+  let status: u32 = (index % 5) as u32
+  let cpu: f32 = ((index % 80) as f32) + 10.0
+  let mem: f32 = ((index % 70) as f32) + 20.0
+  let disk: f32 = ((index % 60) as f32) + 30.0
+
+  new_insight(
+    index,
+    timestamp,
+    value,
+    status,
+    cpu,
+    mem,
+    disk
+  )
+}
+
+// Check if generation complete
+fn is_complete(state: &GeneratorState) -> bool {
+  state.current >= state.total
+}
+
+// Get generation progress percentage
+fn progress_percent(state: &GeneratorState) -> f64 {
+  let current: f64 = state.current as f64
+  let total: f64 = state.total as f64
+  (current / total) * 100.0
+}
+
+// Generator statistics
+struct GeneratorStats {
+  total_generated: u64,
+  current_index: u64,
+  progress: f64,
+  throughput: f64
+}
+
+fn generator_stats(state: &GeneratorState) -> GeneratorStats {
+  GeneratorStats {
+    total_generated: state.generated,
+    current_index: state.current,
+    progress: progress_percent(state),
+    throughput: 0.0
+  }
+}

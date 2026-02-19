@@ -1,0 +1,47 @@
+# Build artifacts
+bin/
+dist/
+target/
+*.o
+*.a
+*.so
+
+# FreeLang
+*.flc
+*.fli
+*.free.bak
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Node/npm (if hybrid)
+node_modules/
+npm-debug.log
+package-lock.json
+yarn.lock
+
+# Test artifacts
+coverage/
+.nyc_output/
+
+# Performance
+benchmarks/results/
+*.bench.json
+
+# Local config
+.env
+.env.local
+secrets/
+
+# Misc
+*.tmp
+.cache/

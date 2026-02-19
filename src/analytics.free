@@ -1,0 +1,116 @@
+// AnalyticsEngine: Stream processing with move semantics
+// Each insight moved (not copied) for memory efficiency
+
+struct AnalyticsMetrics {
+  count: u64,
+  sum: f64,
+  min: f64,
+  max: f64,
+  avg: f64,
+  cpu_avg: f32,
+  mem_avg: f32,
+  disk_avg: f32
+}
+
+struct AnalyticsState {
+  count: u64,
+  sum: f64,
+  min: f64,
+  max: f64,
+  cpu_sum: f32,
+  mem_sum: f32,
+  disk_sum: f32,
+  errors: u64
+}
+
+fn init_analytics() -> AnalyticsState {
+  AnalyticsState {
+    count: 0,
+    sum: 0.0,
+    min: 999999.0,
+    max: 0.0,
+    cpu_sum: 0.0,
+    mem_sum: 0.0,
+    disk_sum: 0.0,
+    errors: 0
+  }
+}
+
+// Process single insight with move semantics
+// 'insight' is moved (not copied) into this function
+fn process_insight(state: &AnalyticsState, insight: Insight) -> AnalyticsState {
+  let new_count: u64 = state.count + 1
+  let new_sum: f64 = state.sum + insight.value
+
+  let new_min: f64 = if insight.value < state.min {
+    insight.value
+  } else {
+    state.min
+  }
+
+  let new_max: f64 = if insight.value > state.max {
+    insight.value
+  } else {
+    state.max
+  }
+
+  let new_cpu: f32 = state.cpu_sum + insight.health_cpu
+  let new_mem: f32 = state.mem_sum + insight.health_mem
+  let new_disk: f32 = state.disk_sum + insight.health_disk
+
+  AnalyticsState {
+    count: new_count,
+    sum: new_sum,
+    min: new_min,
+    max: new_max,
+    cpu_sum: new_cpu,
+    mem_sum: new_mem,
+    disk_sum: new_disk,
+    errors: state.errors
+  }
+}
+
+// Compute final metrics
+fn finalize_metrics(state: &AnalyticsState) -> AnalyticsMetrics {
+  let count_f: f64 = state.count as f64
+  let avg: f64 = if state.count > 0 {
+    state.sum / count_f
+  } else {
+    0.0
+  }
+
+  let cpu_avg: f32 = if state.count > 0 {
+    state.cpu_sum / (state.count as f32)
+  } else {
+    0.0
+  }
+
+  let mem_avg: f32 = if state.count > 0 {
+    state.mem_sum / (state.count as f32)
+  } else {
+    0.0
+  }
+
+  let disk_avg: f32 = if state.count > 0 {
+    state.disk_sum / (state.count as f32)
+  } else {
+    0.0
+  }
+
+  AnalyticsMetrics {
+    count: state.count,
+    sum: state.sum,
+    min: state.min,
+    max: state.max,
+    avg: avg,
+    cpu_avg: cpu_avg,
+    mem_avg: mem_avg,
+    disk_avg: disk_avg
+  }
+}
+
+// Check if insight is anomaly
+fn is_anomaly(insight: &Insight, baseline: f64) -> bool {
+  let threshold: f64 = baseline * 2.0
+  insight.value > threshold
+}

@@ -1,0 +1,42 @@
+// Insight: 기본 데이터 구조 (48 bytes)
+// Memory-efficient struct for streaming analytics
+
+struct Insight {
+  id: u64,              // 8 bytes
+  timestamp: u64,       // 8 bytes
+  value: f64,           // 8 bytes
+  status: u32,          // 4 bytes
+  health_cpu: f32,      // 4 bytes
+  health_mem: f32,      // 4 bytes
+  health_disk: f32,     // 4 bytes
+  padding: u32          // 4 bytes (alignment)
+}
+
+// Constants for Insight
+const INSIGHT_SIZE: u64 = 48
+
+fn new_insight(
+  id: u64,
+  timestamp: u64,
+  value: f64,
+  status: u32,
+  cpu: f32,
+  mem: f32,
+  disk: f32
+) -> Insight {
+  Insight {
+    id: id,
+    timestamp: timestamp,
+    value: value,
+    status: status,
+    health_cpu: cpu,
+    health_mem: mem,
+    health_disk: disk,
+    padding: 0
+  }
+}
+
+fn format_insight(insight: &Insight) -> str {
+  // Simple formatting without string interpolation
+  "Insight"
+}

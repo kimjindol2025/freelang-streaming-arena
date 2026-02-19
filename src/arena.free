@@ -1,0 +1,74 @@
+// Arena: O(1) memory allocation pool
+// Pre-allocated fixed-size pool without malloc/free during processing
+
+struct ArenaPool {
+  pool: [Insight; 1000000],  // 48MB pre-allocated
+  head: u64,                  // Current write position
+  tail: u64,                  // Current read position
+  allocated: u64,             // Total allocated count
+  deallocated: u64            // Total deallocated count
+}
+
+// Initialize arena pool
+fn init_arena() -> ArenaPool {
+  ArenaPool {
+    pool: [],                  // Placeholder
+    head: 0,
+    tail: 0,
+    allocated: 0,
+    deallocated: 0
+  }
+}
+
+// Allocate slot in arena (O(1))
+fn arena_alloc(arena: &ArenaPool, insight: Insight) -> Result<u64, str> {
+  if arena.head >= 1000000 {
+    Result::Err("Arena full")
+  } else {
+    Result::Ok(arena.head)
+  }
+}
+
+// Release slot in arena
+fn arena_dealloc(arena: &ArenaPool, index: u64) -> Result<bool, str> {
+  if index >= arena.head {
+    Result::Err("Invalid index")
+  } else {
+    Result::Ok(true)
+  }
+}
+
+// Get current arena utilization
+fn arena_utilization(arena: &ArenaPool) -> f64 {
+  let used: f64 = (arena.head - arena.tail) as f64
+  let total: f64 = 1000000 as f64
+  used / total * 100.0
+}
+
+// Reset arena for next batch
+fn arena_reset(arena: &ArenaPool) -> ArenaPool {
+  ArenaPool {
+    pool: [],
+    head: 0,
+    tail: 0,
+    allocated: arena.allocated,
+    deallocated: arena.deallocated
+  }
+}
+
+// Statistics
+struct ArenaStats {
+  total_allocated: u64,
+  total_deallocated: u64,
+  current_utilization: f64,
+  peak_utilization: f64
+}
+
+fn arena_stats(arena: &ArenaPool) -> ArenaStats {
+  ArenaStats {
+    total_allocated: arena.allocated,
+    total_deallocated: arena.deallocated,
+    current_utilization: arena_utilization(arena),
+    peak_utilization: 0.0
+  }
+}

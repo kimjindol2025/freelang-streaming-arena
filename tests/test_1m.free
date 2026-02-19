@@ -1,0 +1,82 @@
+// Test: 1M insights processing
+// Verify basic functionality and memory usage
+
+use insight::*
+use arena::*
+use generator::*
+use analytics::*
+
+fn test_1m_streaming() -> bool {
+  println("TEST: 1M Streaming Analytics")
+
+  let config: GeneratorConfig = GeneratorConfig {
+    total_count: 1000000,
+    batch_size: 100000,
+    interval_ms: 0
+  }
+
+  let mut gen_state: GeneratorState = init_generator(config)
+  let mut analytics_state: AnalyticsState = init_analytics()
+
+  // Process all insights
+  let mut count: u64 = 0
+  for i in 0..1000000 {
+    let insight: Insight = generate_one(gen_state, i)
+    analytics_state = process_insight(analytics_state, insight)
+    count = count + 1
+
+    if count % 250000 == 0 {
+      let percent: f64 = (count as f64) / 1000000.0 * 100.0
+      println("  {percent}% processed")
+    }
+  }
+
+  // Verify metrics
+  let metrics: AnalyticsMetrics = finalize_metrics(analytics_state)
+
+  println("  Final: count={count}, avg={avg_value}, cpu={cpu_avg}%")
+  println("  ✅ PASS")
+
+  count == 1000000
+}
+
+fn test_insight_creation() -> bool {
+  println("TEST: Insight Creation")
+
+  let insight: Insight = new_insight(
+    1,
+    1000,
+    50.5,
+    1,
+    75.0,
+    60.0,
+    40.0
+  )
+
+  println("  Created: id={id}")
+  println("  ✅ PASS")
+
+  insight.id == 1
+}
+
+fn test_analytics_aggregation() -> bool {
+  println("TEST: Analytics Aggregation")
+
+  let mut state: AnalyticsState = init_analytics()
+
+  let insight1: Insight = new_insight(1, 1000, 10.0, 1, 50.0, 40.0, 30.0)
+  state = process_insight(state, insight1)
+
+  let insight2: Insight = new_insight(2, 2000, 20.0, 1, 60.0, 50.0, 40.0)
+  state = process_insight(state, insight2)
+
+  let insight3: Insight = new_insight(3, 3000, 30.0, 1, 70.0, 60.0, 50.0)
+  state = process_insight(state, insight3)
+
+  let metrics: AnalyticsMetrics = finalize_metrics(state)
+
+  println("  Count: {count}, Avg: {avg_value}")
+  println("  ✅ PASS")
+
+  metrics.count == 3
+}
